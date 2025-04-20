@@ -30,30 +30,14 @@ public class ClassScanner {
             }
         }
 
+        clazz.setBuildPolicy();
+
         return clazz;
     }
 
     private void addField(Clazz clazz, Field field) throws NoInnerClassExceptions {
         final var genericType = field.getGenericType();
-        Clazz fieldClass;
-
-        // final var typeArguments = ((ParameterizedType)
-        // genericType).getActualTypeArguments();
-
-        // if (typeArguments.length > 0) {
-        // final var innerType = typeArguments[0];
-
-        // if (innerType instanceof Class<?>) {
-        // final var outterClazz = scan(field.getType());
-        // final var innerClass = scan((Class<?>) innerType);
-        // outterClazz.addIterableField(innerClass);
-        // fieldClass = outterClazz;
-        // } else {
-        // throw new NoInnerClassExceptions();
-        // }
-        // }
-        // throw new NoInnerClassExceptions();
-        fieldClass = scan(genericType);
+        final var fieldClass = scan(genericType);
         clazz.addField(field.getName(), fieldClass);
     }
 
