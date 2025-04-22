@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import br.com.vinimockgen.domain.exception.NotMappedBuilderPolicyException;
 import lombok.Data;
 
 @Data
@@ -27,6 +28,7 @@ public class Clazz {
     private boolean isIterable;
     private boolean isGeneric;
     private BuildPolicy buildPolicy;
+    private List<Class> constructorClasses;
 
     public Clazz(Type type) {
         if (type instanceof ParameterizedType) {
@@ -57,11 +59,11 @@ public class Clazz {
         fields.put("iter", iterFieldType);
     }
 
-    public void setBuildPolicy() {
+    public void setBuildPolicy() throws NotMappedBuilderPolicyException {
         if (tryToGetBuilder() || tryToGetConstructor() || tryToGetSetters()) {
             return;
         }
-        throw new RuntimeException();
+        throw new NotMappedBuilderPolicyException();
     }
 
     private boolean tryToGetBuilder() {
@@ -88,15 +90,17 @@ public class Clazz {
         final var constructors = clazz.getConstructors();
 
         for (var constructor : constructors) {
+            final var constructorParameterList = List.of(constructor.getParameterTypes());
             final var constructorParameterSet = new HashSet<Class>() {
                 {
-                    addAll(List.of(constructor.getParameterTypes()));
+                    addAll(constructorParameterList);
                 }
             };
 
             if (constructorParameterSet.containsAll(parameterSet)
                     && parameterSet.containsAll(constructorParameterSet)) {
                 this.buildPolicy = BuildPolicy.CONSTRUCTOR;
+                constructorClasses = constructorParameterList;
                 return true;
             }
         }
