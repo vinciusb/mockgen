@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class VariableGenerator {
 
     private final MockGenConfiguration mockGenConfig;
+    private final RandomValueGenerator randomValueGenerator;
 
     public Variable generateVariables(Clazz rootClass) {
         var rootVar = Variable.builder().clazz(rootClass);
@@ -40,6 +41,9 @@ public class VariableGenerator {
 
     private List<Variable> getOrderedVariablesByBuildPolicy(Clazz rootClass, Map<String, Variable> fieldToVariableMap) {
         if (rootClass.getBuildPolicy() == BuildPolicy.CONSTRUCTOR) {
+            if (rootClass.isIterable()) {
+                return getVariablesForIterableConstructor(rootClass, fieldToVariableMap.values());
+            }
             return getOrderedVariablesFromConstructor(rootClass, fieldToVariableMap.values());
         }
         return fieldToVariableMap.values().stream().map(Function.identity()).toList();
@@ -64,6 +68,13 @@ public class VariableGenerator {
         }
 
         return orderedVariables;
+    }
+
+    private List<Variable> getVariablesForIterableConstructor(Clazz rootClass, Collection<Variable> variables) {
+        final var firstVar = variables.stream().toList().getFirst();
+        final var numVars = randomValueGenerator.randomIntRange(mockGenConfig.getIterableMinSize(),
+                mockGenConfig.getIterableMaxSize());
+        return Collections.nCopies(numVars, firstVar);
     }
 
 }

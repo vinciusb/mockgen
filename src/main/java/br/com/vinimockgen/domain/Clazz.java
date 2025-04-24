@@ -108,7 +108,9 @@ public class Clazz {
     }
 
     private boolean tryToGetSetters() {
-        return false;
+        // TODO: Implement verification for setters
+        this.buildPolicy = BuildPolicy.SETTER;
+        return true;
     }
 
 }

@@ -8,7 +8,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         try (ApplicationContext context = ApplicationContext.run()) {
-            context.registerSingleton(MockGenConfiguration.class, new MockGenConfiguration());
+            context.registerSingleton(MockGenConfiguration.class, new MockGenConfiguration(3, 4));
             var mockGenConfiguration = context.getBean(MockGenConfiguration.class);
             final var mockGenerator = context.getBean(MockGenerator.class);
             mockGenerator.generateMock();
