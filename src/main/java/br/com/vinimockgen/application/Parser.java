@@ -5,9 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+import java.util.stream.IntStream;
 import br.com.vinimockgen.domain.BuildPolicy;
-import br.com.vinimockgen.domain.Clazz;
+import br.com.vinimockgen.domain.Variable;
+import br.com.vinimockgen.presentation.config.MockGenConfiguration;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,42 +21,50 @@ public class Parser {
     private List<String> codeLines;
     private Map<String, Integer> occurencesByName;
 
-    public String parse(Clazz rootClass) {
+    private final MockGenConfiguration config;
+
+    public String parse(Variable rootVar) {
         codeLines = new ArrayList<>();
         occurencesByName = new HashMap<>();
 
-        parse(rootClass, rootClass.getClazz().getTypeName().toLowerCase());
+        var rootClassName = rootVar.getClazz().getClazz().getSimpleName().toLowerCase();
+        _parse(rootVar, rootClassName);
 
         return codeLines.stream().collect(Collectors.joining(System.lineSeparator()));
     }
 
-    private String parse(Clazz rootClass, String propertyName) {
+    private String _parse(Variable rootVar, String propertyName) {
         try {
+            final var rootClass = rootVar.getClazz();
+            final var varName = buildVariableName(propertyName);
+
             if (rootClass.isPseudoPrimitive()) {
-                final var varName = buildVariableName(propertyName);
-                declareVariable(rootClass, varName);
+                final var varValue = rootVar.getValueGenerator().generateStringifiedValue(config);
+                declareVariable(varName, varValue);
                 return varName;
             }
 
-            var fieldNameToVarName = new HashMap<String, String>();
+            final var fields = new ArrayList<>(rootClass.getFields().keySet());
 
-            for (var entry : rootClass.getFields().entrySet()) {
-                final var varName = parse(entry.getValue(), entry.getKey());
-                fieldNameToVarName.put(entry.getKey(), varName);
-            }
+            final var builderVars = IntStream.range(0, rootVar.getBuilderVariables().size())
+                    .mapToObj(idx -> {
+                        if (rootClass.isIterable()) {
+                            return this._parse(rootVar.getBuilderVariables().get(idx), fields.get(0));
+                        }
+                        return this._parse(rootVar.getBuilderVariables().get(idx), fields.get(idx));
+                    })
+                    .toList();
 
-            final var varName = buildVariableName(propertyName);
-            buildComplexClass(rootClass, varName, fieldNameToVarName);
+            buildComplexClass(rootVar, varName, builderVars);
 
             return varName;
         } catch (Exception ex) {
             log.error(String.format(
-                    "Error while trying to parse the Hierarchy Tree. Error happend for the \n{\n\t\"propertyName\": \"%s\",\n\t\"class\": \"%s\"}\n",
-                    propertyName, rootClass),
+                    "Error while trying to parse the Hierarchy Tree. Error happend for the \n{\n\t\"variable\": \"%s\"}\n",
+                    rootVar),
                     ex);
             throw ex;
         }
-
     }
 
     private String buildVariableName(String propertyName) {
@@ -68,24 +77,31 @@ public class Parser {
         return String.format("%s%d", propertyName, numOcurrences + 1);
     }
 
-    private void declareVariable(Clazz clazz, String propertyName) {
-        codeLines.add(String.format("var %s = new %s();", propertyName, clazz.getClazz().getName()));
+    private void declareVariable(String varName, String varValue) {
+        codeLines.add(String.format("var %s = %s;", varName, varValue));
     }
 
-    private void buildComplexClass(Clazz clazz, String propertyName, Map<String, String> fieldNameToVarName) {
-        if (clazz.getBuildPolicy() == BuildPolicy.BUILDER) {
-            var builderLines = clazz.getFields()
-                    .entrySet()
-                    .stream()
-                    .map(entry -> String.format("%s(%s)", entry.getKey(), fieldNameToVarName.get(entry.getKey())))
+    private void buildComplexClass(Variable rootVar, String propertyName, List<String> builderVars) {
+        final var rootClass = rootVar.getClazz();
+
+        if (rootVar.getClazz().getBuildPolicy() == BuildPolicy.BUILDER) {
+            final var fieldNames = new ArrayList<>(rootClass.getFields().keySet());
+            final var builderLines = IntStream
+                    .range(0, fieldNames.size())
+                    .mapToObj((idx) -> String.format("%s(%s)", fieldNames.get(idx), builderVars.get(idx)))
                     .collect(Collectors.joining("."));
 
             codeLines.add(String.format("var %s = %s.builder().%s.build();",
-                    clazz.getClass().getSimpleName(),
                     propertyName,
+                    rootClass.getClazz().getSimpleName(),
                     builderLines));
         } else {
-            codeLines.add(String.format("var %s = new %s();", propertyName, clazz.getClazz().getName()));
+            final var argsString = builderVars.stream().collect(Collectors.joining(", "));
+            codeLines.add(
+                    String.format("var %s = new %s(%s);",
+                            propertyName,
+                            rootClass.getClazz().getName(),
+                            argsString));
         }
     }
 }

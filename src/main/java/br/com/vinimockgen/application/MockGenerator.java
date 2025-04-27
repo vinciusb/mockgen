@@ -17,7 +17,7 @@ public class MockGenerator {
     public String generateMock() throws NoInnerClassExceptions, NotMappedBuilderPolicyException {
         final var scannedTree = classScanner.scan(Portfolio.class);
         final var variableTree = variableGenerator.generateVariables(scannedTree);
-        final var parsedCode = parser.parse(scannedTree);
+        final var parsedCode = parser.parse(variableTree);
         System.out.println(parsedCode);
         return parsedCode;
     }

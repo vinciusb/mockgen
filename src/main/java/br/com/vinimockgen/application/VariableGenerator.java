@@ -13,6 +13,7 @@ import com.github.javaparser.utils.Pair;
 import br.com.vinimockgen.domain.BuildPolicy;
 import br.com.vinimockgen.domain.Clazz;
 import br.com.vinimockgen.domain.Variable;
+import br.com.vinimockgen.domain.generators.IValueGenerator;
 import br.com.vinimockgen.presentation.config.MockGenConfiguration;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +23,14 @@ import lombok.RequiredArgsConstructor;
 public class VariableGenerator {
 
     private final MockGenConfiguration mockGenConfig;
-    private final RandomValueGenerator randomValueGenerator;
+    private final ValueGeneratorProvider valueGeneratorProvider;
 
     public Variable generateVariables(Clazz rootClass) {
         var rootVar = Variable.builder().clazz(rootClass);
+
+        if (rootClass.isPseudoPrimitive()) {
+            rootVar.valueGenerator(valueGeneratorProvider.getByClass(rootClass.getClazz()));
+        }
 
         final var fieldToVariableMap = Optional.ofNullable(rootClass.getFields())
                 .map(Map<String, Clazz>::entrySet)
@@ -72,8 +77,8 @@ public class VariableGenerator {
 
     private List<Variable> getVariablesForIterableConstructor(Clazz rootClass, Collection<Variable> variables) {
         final var firstVar = variables.stream().toList().getFirst();
-        final var numVars = randomValueGenerator.randomIntRange(mockGenConfig.getIterableMinSize(),
-                mockGenConfig.getIterableMaxSize());
+        final IValueGenerator<Integer> randomValueGenerator = valueGeneratorProvider.getByClass(Integer.class);
+        final var numVars = randomValueGenerator.generateValue(mockGenConfig);
         return Collections.nCopies(numVars, firstVar);
     }
 
