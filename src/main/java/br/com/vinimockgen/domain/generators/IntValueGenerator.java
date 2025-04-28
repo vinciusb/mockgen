@@ -10,8 +10,7 @@ public class IntValueGenerator implements IValueGenerator<Integer> {
     public Integer generateValue(MockGenConfiguration configuration) {
         final var max = configuration.getIterableMaxSize();
         final var min = configuration.getIterableMinSize();
-        final var value = (int) Math.random() * (max - min) + min;
-        return value;
+        return ValueGeneratorUtils.generateInt(min, max);
     }
 
     @Override

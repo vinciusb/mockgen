@@ -2,6 +2,8 @@ package br.com.vinimockgen.application;
 
 import br.com.vinimockgen.domain.generators.IValueGenerator;
 import br.com.vinimockgen.domain.generators.IntValueGenerator;
+import br.com.vinimockgen.domain.generators.LocalDateTimeValueGenerator;
+import java.time.LocalDateTime;
 import br.com.vinimockgen.domain.generators.BooleanValueGenerator;
 import br.com.vinimockgen.domain.generators.StringValueGenerator;
 import jakarta.inject.Singleton;
@@ -17,6 +19,8 @@ public class ValueGeneratorProvider {
             return stringValueGenerator;
         if (clazz.equals(Boolean.class))
             return booleanValueGenerator;
+        if (clazz.equals(LocalDateTime.class))
+            return localDateTimeValueGenerator;
 
         throw new RuntimeException(); // TODO: Add own exception
     }
@@ -24,4 +28,5 @@ public class ValueGeneratorProvider {
     private final IntValueGenerator intValueGenerator;
     private final StringValueGenerator stringValueGenerator;
     private final BooleanValueGenerator booleanValueGenerator;
+    private final LocalDateTimeValueGenerator localDateTimeValueGenerator;
 }

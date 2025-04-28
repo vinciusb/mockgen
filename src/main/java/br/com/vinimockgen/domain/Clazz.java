@@ -2,6 +2,9 @@ package br.com.vinimockgen.domain;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +23,9 @@ public class Clazz {
             add(String.class);
             add(Double.class);
             add(Boolean.class);
+            add(LocalDateTime.class);
+            add(LocalDate.class);
+            add(Date.class);
         }
     };
 
