@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 @Builder
-class Transaction {
+public class Transaction {
     private String transactionId;
     private String description;
-    // private Double amount;
+    private Double amount;
     private String category;
     private Boolean isCredit;
     private LocalDateTime transactionDate;

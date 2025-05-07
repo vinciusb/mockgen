@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-class Account {
+public class Account {
     private String accountNumber;
     private String accountType;
     private String currency;
