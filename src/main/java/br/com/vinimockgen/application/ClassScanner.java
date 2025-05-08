@@ -4,14 +4,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import br.com.vinimockgen.domain.Clazz;
-import br.com.vinimockgen.domain.exception.NoInnerClassExceptions;
+import br.com.vinimockgen.domain.exception.NoInnerClassException;
 import br.com.vinimockgen.domain.exception.NotMappedBuilderPolicyException;
 import jakarta.inject.Singleton;
 
 @Singleton
 public class ClassScanner {
 
-    public Clazz scan(Type rootType) throws NoInnerClassExceptions, NotMappedBuilderPolicyException {
+    public Clazz scan(Type rootType) throws NoInnerClassException, NotMappedBuilderPolicyException {
         var clazz = new Clazz(rootType);
 
         if (clazz.isPseudoPrimitive())
@@ -35,14 +35,14 @@ public class ClassScanner {
         return clazz;
     }
 
-    private void addField(Clazz clazz, Field field) throws NoInnerClassExceptions, NotMappedBuilderPolicyException {
+    private void addField(Clazz clazz, Field field) throws NoInnerClassException, NotMappedBuilderPolicyException {
         final var genericType = field.getGenericType();
         final var fieldClass = scan(genericType);
         clazz.addField(field.getName(), fieldClass);
     }
 
     private void addGenericType(Clazz clazz, Type type, int idx)
-            throws NoInnerClassExceptions, NotMappedBuilderPolicyException {
+            throws NoInnerClassException, NotMappedBuilderPolicyException {
         final var typeClazz = scan(type);
         clazz.addField("genArg" + idx, typeClazz);
     }

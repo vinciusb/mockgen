@@ -20,7 +20,7 @@ public class DateValueGenerator implements IValueGenerator<Date> {
 
     @Override
     public String generateStringifiedValue(MockGenConfiguration configuration) {
-        final var value = instanValueGenerator.generateValue(configuration);
+        final var value = instanValueGenerator.generateStringifiedValue(configuration);
         return String.format("Date.from(%s)", value);
     }
 

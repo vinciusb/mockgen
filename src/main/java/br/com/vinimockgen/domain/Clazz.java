@@ -23,6 +23,8 @@ public class Clazz {
             add(Integer.class);
             add(String.class);
             add(Double.class);
+            add(Float.class);
+            add(Long.class);
             add(Boolean.class);
             add(LocalDateTime.class);
             add(LocalDate.class);
